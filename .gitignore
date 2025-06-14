@@ -7,3 +7,4 @@ disc_image/*
 !disc_image/patched image will be here
 patched_disc_image/*
 !patched_disc_image/put mod files for sd card here
+tmp/
