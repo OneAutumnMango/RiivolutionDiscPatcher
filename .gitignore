@@ -1,3 +1,6 @@
+.venv
+.vscode
+
 sd_files/*
 !sd_files/put game image you want to patch here
 disc_image/*
