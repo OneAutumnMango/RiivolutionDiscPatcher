@@ -58,3 +58,46 @@ for patch in filtered_patches:
     console.print(f"- {patch['@id']}")
 
 
+folders = []
+files = []
+memory = []
+for patch in filtered_patches:
+    patch_folders = patch.get("folder", [])
+    if not isinstance(patch_folders, list):
+        patch_folders = [patch_folders]
+    for f in patch_folders:
+        if f and f.get("@disc") and f.get("@external"):
+            # external_path = f["@external"]
+            # if not external_path.startswith(xml_root_folder):
+            #     f["@external"] = f"{xml_root_folder}/{external_path}"
+            folders.append(f)
+
+    patch_files = patch.get("file", [])
+    if not isinstance(patch_files, list):
+        patch_files = [patch_files]
+    for fi in patch_files:
+        if fi and fi.get("@disc") and fi.get("@external"):
+            # external_path = fi["@external"]
+            # if not external_path.startswith(xml_root_folder):
+            #     fi["@external"] = f"{xml_root_folder}/{external_path}"
+            files.append(fi)
+
+    mems = patch.get("memory", [])
+    if not isinstance(mems, list):
+        mems = [mems]
+    for m in mems:
+        if m and m.get("@offset") and (m.get("@value") or m.get("@valuefile")):
+            memory.append(m)
+
+if not folders and not files and not memory:
+    console.print("[red]No patches with folders, files or memory found. Ending script.[/red]")
+    exit(1)
+
+answer = questionary.select(
+    "Continue with patch?",
+    choices=["Yes", "No"]
+).ask()
+
+if answer != "Yes":
+    console.print("[red]Ending script.[/red]")
+    exit(1)
