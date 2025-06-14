@@ -1,3 +1,6 @@
-sd_files/*
-disc_image/*
-patched_disc_image/*
+# sd_files/*
+!sd_files/put game image you want to patch here
+# disc_image/*
+!disc_image/patched image will be here
+# patched_disc_image/*
+!patched_disc_image/put mod files for sd card here
