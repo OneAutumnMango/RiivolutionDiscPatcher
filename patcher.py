@@ -6,16 +6,14 @@ from rich.console import Console
 from pathlib import Path
 import shutil
 import subprocess
+from colorama import init, Fore, Style
+init()
 
 def run_command(cmd, check=True):
-    """Run shell command, raise on error."""
     print(f"Running command: {cmd}")
-    proc = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    proc = subprocess.run(cmd, shell=True)
     if proc.returncode != 0:
-        print(proc.stderr)
         raise RuntimeError(f"Command failed: {cmd}")
-    print(proc.stdout)
-    return proc.stdout
 
 
 console = Console()
@@ -143,31 +141,29 @@ if dest_path.exists():
     shutil.rmtree(dest_path)
 
 cmd_extract = f'wit EXTRACT "{str(selected_file)}" {dest_path}'
-print('\033[33mRunning "wit EXTRACT"... (This may take a while)\033[0m')  # yellow text
+print(Fore.YELLOW + 'Running "wit EXTRACT"... (This may take a while)' + Style.RESET_ALL)
 run_command(cmd_extract)
 
-
-print('\033[33mPatching Files...\033[0m')
+print(Fore.YELLOW + 'Patching Files...' + Style.RESET_ALL)
 
 # Copy folders
 for folder in folders:
-    src = sd_root/ xml_root_folder / folder['@external']
+    src = sd_root / xml_root_folder / folder['@external']
     dest = dest_path / 'files' / folder['@disc']
     if src.exists():
-        dest.mkdir(parents=True, exist_ok=True)
         print(f'Copying folder {src} -> {dest}')
         if dest.exists():
             shutil.rmtree(dest)
         shutil.copytree(src, dest)
         time.sleep(0.01)
     else:
-        print(f'\033[31m"{src}" does not exist. Skipping.\033[0m')
+        print(Fore.RED + f'"{src}" does not exist. Skipping.' + Style.RESET_ALL)
 
 # Copy files
 for file in files:
-    src = sd_root/ xml_root_folder / file['@external']
+    src = sd_root / xml_root_folder / file['@external']
     if not src.exists():
-        print(f'\033[31m"{src}" does not exist. Skipping.\033[0m')
+        print(Fore.RED + f'"{src}" does not exist. Skipping.' + Style.RESET_ALL)
         continue
 
     adjusted_path = None
@@ -184,29 +180,29 @@ for file in files:
     shutil.copy2(src, adjusted_path)
     time.sleep(0.01)
 
-
 patched_dir = Path("patched_disc_image")
 patched_dir.mkdir(parents=True, exist_ok=True)
+game_file = patched_dir / "game.wbfs"
+if game_file.exists():
+    game_file.unlink()
 
-cmd_copy = f'wit COPY {dest_path} {patched_dir}/game.wbfs'
-print('\033[33mRunning "wit COPY"... (This may take a while)\033[0m')
+cmd_copy = f'wit COPY {dest_path} {game_file}'
+print(Fore.YELLOW + 'Running "wit COPY"... (This may take a while)' + Style.RESET_ALL)
 run_command(cmd_copy)
 
-# Run wit VERIFY
-cmd_verify = f'wit VERIFY {patched_dir}/game.wbfs'
-print('\033[33mRunning "wit VERIFY"... (This may take a while)\033[0m')
+cmd_verify = f'wit VERIFY {game_file}'
+print(Fore.YELLOW + 'Running "wit VERIFY"... (This may take a while)' + Style.RESET_ALL)
 run_command(cmd_verify)
 
-# Ask if remove tmp folder
 remove_tmp = questionary.select(
     "Remove tmp folder?",
     choices=["Yes", "No"]
 ).ask()
 
 if remove_tmp == "Yes":
-    print('\033[33mRemoving tmp files...\033[0m')
+    print(Fore.YELLOW + 'Removing tmp files...' + Style.RESET_ALL)
     shutil.rmtree(dest_path)
 else:
-    print('\033[31mKeeping tmp files.\033[0m')
+    print(Fore.RED + 'Keeping tmp files.' + Style.RESET_ALL)
 
-print('\033[32mDone! Patched file is located at "' + str(patched_dir) + '/game.wbfs". Ending Script.\033[0m')
+print(Fore.GREEN + f'Done! Patched file is located at "{game_file}". Ending Script.' + Style.RESET_ALL)
